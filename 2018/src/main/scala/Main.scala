@@ -10,4 +10,7 @@ object Main extends App {
 
   println("\n-- Puzzle 2 - part 2")
   TwoB.start()
+
+  println("\n-- Puzzle 3 - part 1")
+  ThreeA.start()
 }

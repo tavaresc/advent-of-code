@@ -30,7 +30,7 @@ libraryDependencies += "org.typelevel" %% "cats-core" % "1.4.0"
 // Now, in any Scala file, you can import classes, objects, etc, from cats with
 // a regular import.
 
-libraryDependencies += "org.scalatest" % "scalatest_2.9.2" % "1.8" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 
 // TIP: To find the "dependency" that you need to add to the
 // `libraryDependencies` set, which in the above example looks like this:
