@@ -50,7 +50,7 @@ are within two or more claims?
 */
 
 case class ThreeA(claims: Seq[String]) {
-  // fabric size = 1000 x 1000
+  // fabric size = 2000 x 2000
   val fabric: IndexedSeq[IndexedSeq[Int]] = IndexedSeq.fill(2000){IndexedSeq.fill(2000){0}}
 
   def getXY(s: String): List[Int] = {
@@ -78,9 +78,7 @@ case class ThreeA(claims: Seq[String]) {
   }
 
   val parsedClaims: Seq[(Int, Int)]  = claims.flatMap(c => parseClaims(getXY(c), getWidthHeight(c)))
-
-  val duplicatedParsedclaims = parsedClaims.groupBy(x => x).mapValues(_.length).filter(_._2 > 1).size
-
+  val duplicatedParsedClaims = parsedClaims.groupBy(x => x).mapValues(_.length).filter(_._2 > 1).size
 
   val newFabric = parsedClaims.foldLeft(fabric){ case (fab, (i, j)) =>
     val seq1 = fab(i)
@@ -92,7 +90,7 @@ case class ThreeA(claims: Seq[String]) {
 
   println(s"---- numberOfOverlapedCells = $result")
 
-  println(s"---- duplicatedParsedclaims = $duplicatedParsedclaims")
+  println(s"---- duplicatedParsedclaims = $duplicatedParsedClaims")
   //newFabric.map(println(_))
 }
 

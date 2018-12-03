@@ -13,4 +13,7 @@ object Main extends App {
 
   println("\n-- Puzzle 3 - part 1")
   ThreeA.start()
+
+  println("\n-- Puzzle 3 - part 2")
+  ThreeB.start()
 }
