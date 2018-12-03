@@ -79,6 +79,7 @@ case class ThreeA(claims: Seq[String]) {
 
   val parsedClaims: Seq[(Int, Int)]  = claims.flatMap(c => parseClaims(getXY(c), getWidthHeight(c)))
   val duplicatedParsedClaims = parsedClaims.groupBy(x => x).mapValues(_.length).filter(_._2 > 1).size
+  //val duplicatedParsedClaims2 = parsedClaims.groupBy(x => x).values.count(_.length > 1)
 
   val newFabric = parsedClaims.foldLeft(fabric){ case (fab, (i, j)) =>
     val seq1 = fab(i)
