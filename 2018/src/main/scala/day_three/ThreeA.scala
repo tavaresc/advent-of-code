@@ -51,8 +51,7 @@ are within two or more claims?
 
 case class ThreeA(claims: Seq[String]) {
   // fabric size = 1000 x 1000
-  val fabric: IndexedSeq[IndexedSeq[Int]] = IndexedSeq.fill(1000){IndexedSeq.fill(1000){0}}
-  //fabric.map(println(_))
+  val fabric: IndexedSeq[IndexedSeq[Int]] = IndexedSeq.fill(2000){IndexedSeq.fill(2000){0}}
 
   def getXY(s: String): List[Int] = {
     val regex: Regex = """@\s(\d+),(\d+)""".r
@@ -66,28 +65,35 @@ case class ThreeA(claims: Seq[String]) {
     mesures.substring(2).trim.split("x").toList.map(_.toInt)
   }
 
-  def applyClaims(coordinates: List[Int], mesures: List[Int]): IndexedSeq[Int] = {
+  def parseClaims(coordinates: List[Int], mesures: List[Int]): Seq[(Int, Int)] = {
     val x = coordinates(0)
     val y = coordinates(1)
     val w = mesures(0)
     val h = mesures(1)
+
     for {
-      row <- y to (y + h)
-      col <- x to (x + w)
-    } yield fabric(row)(col) + 1
+      row <- y to (y + h - 1)
+      col <- x to (x + w - 1)
+    } yield (row, col)
   }
 
-  val newFabric = claims.map(c => applyClaims(getXY(c), getWidthHeight(c))).toIndexedSeq
+  val parsedClaims: Seq[(Int, Int)]  = claims.flatMap(c => parseClaims(getXY(c), getWidthHeight(c)))
+
+  val duplicatedParsedclaims = parsedClaims.groupBy(x => x).mapValues(_.length).filter(_._2 > 1).size
+
+
+  val newFabric = parsedClaims.foldLeft(fabric){ case (fab, (i, j)) =>
+    val seq1 = fab(i)
+    val value = seq1(j) + 1
+    fab.updated(i, seq1.updated(j, value))
+  }
+
+  val result = newFabric.map(a => a.filter(_ > 1).length).sum
+
+  println(s"---- numberOfOverlapedCells = $result")
+
+  println(s"---- duplicatedParsedclaims = $duplicatedParsedclaims")
   //newFabric.map(println(_))
-
-
-
-
-  //val resultingFrequency = frequencies.foldLeft(0){ (acc, i) => acc + i }
-
-  println(getXY("#1 @ 1,3: 4x4"))
-  println(getWidthHeight("#1 @ 1,3: 4x4"))
-
 }
 
 object ThreeA {
