@@ -56,10 +56,17 @@ case class ThreeB(claims: Seq[String]) {
   val parsedClaimsWithIds: Seq[(String,Seq[(Int, Int)])] =
     claims.map(c => (getId(c), parseClaims(getXY(c), getWidthHeight(c))))
 
+  val duplicatedParsedClaims = parsedClaims.groupBy(x => x).mapValues(_.length).filter(_._2 > 1).map(_._1).toSeq
+/*
+  val nonOverlapdClaims = parsedClaimsWithIds.find {
+    case (id, pair) => pair.forall{ case (x, y) => !duplicatedParsedClaims.contains((x, y))
+    }
+  }.get._1
+*/
   val result = parsedClaimsWithIds.find{ case (id, pair) => pair.forall { case (x, y) => newFabric(x)(y) == 1 } }.get._1
 
   println(s"---- idDoesntOverlap = $result")
-
+  //println(s"---- nonOverlapdClaims = $nonOverlapdClaims")
   //newFabric.map(println(_))
 }
 

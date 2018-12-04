@@ -1,4 +1,5 @@
 object Main extends App {
+  /*
   println("\n-- Puzzle 1 - part 1")
   OneA.start()
 
@@ -16,4 +17,8 @@ object Main extends App {
 
   println("\n-- Puzzle 3 - part 2")
   ThreeB.start()
+  */
+
+  println("\n-- Puzzle 4 - part 1")
+  FourA.start()
 }
