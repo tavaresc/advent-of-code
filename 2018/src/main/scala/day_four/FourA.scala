@@ -1,3 +1,4 @@
+import java.sql.Timestamp
 import scala.io.Source
 import scala.util.matching.Regex
 
@@ -74,21 +75,65 @@ What is the ID of the guard you chose multiplied by the minute you chose? (In th
 
 case class FourA(inputList: List[String]) {
 
-  case class Timestamps(time: Int, label: String)
+  sealed trait Event
+  case class ChangeShift(guardId: Int) extends Event
+  object Sleep extends Event
+  object WakeUp extends Event
 
-  val regex: Regex = """(\[)\s(\d+)-(\d+)""".r
+  case class Timestamp(date: Int, time: Int, event: Event)
 
-  private val timestampRegex: Regex = """(\[)(\d+)-(\d+)-(\d+) (\d+):(\d+)(\]) (.+)""".r
+  case class Shift(guardId: Int, sleepAt: Option[Int], wakeUpAt: Option[Int])
 
-  val text = "[1518-11-05 00:55] wakes up"
+  private val guardRegex = """(\[)(\d+)-(\d+)-(\d+) (\d+):(\d+)(\]) Guard #(\d+) begins shift""".r
+  private val sleepAtRegex = """(\[)(\d+)-(\d+)-(\d+) (\d+):(\d+)(\]) falls asleep""".r
+  private val wakeUpAtRegex = """(\[)(\d+)-(\d+)-(\d+) (\d+):(\d+)(\]) wakes up""".r
 
-  val r = text match {
-    case timestampRegex(_, year, month, day, hour, minute, _, msg) => s"${year + month + day} and ${hour + minute} and $msg"
+  def getTimestamps(s: String): Timestamp = s match {
+    case guardRegex(_, _, month, day, hour, minute, _, (id)) =>
+      Timestamp((month + day).toInt, (hour + minute).toInt, ChangeShift(id.toInt))
+
+    case sleepAtRegex(_, _, month, day, hour, minute, _) =>
+      Timestamp((month + day).toInt, (hour + minute).toInt, Sleep)
+
+    case wakeUpAtRegex(_, _, month, day, hour, minute, _) =>
+      Timestamp((month + day).toInt, (hour + minute).toInt, WakeUp)
   }
 
-  println(r)
-  // private val timestampRegex = """[(\d+)-(\d+)-(\d+) (\d+):(\d+)] """
+  def getShifts(records: List[Timestamp]): List[Shift] = {
+    def groupByGuard(records: List[Timestamp], guardId: Int, sTime: Option[Int], wTime: Option[Int]): List[Shift] = {
+      records match {
+        case Timestamp(_, _, ChangeShift(id)) :: tail  => groupByGuard(tail, id, None, None)
+        case Timestamp(_, time, Sleep) :: tail  => groupByGuard(tail, guardId, Some(time), None)
+        case Timestamp(_, time, WakeUp) :: tail  =>
+          if (time < sTime.get) println(s"---- Bad time : sleep = ${sTime.get}  wake = $time")
+          Shift(guardId, sTime, Some(time)) :: groupByGuard(tail, guardId, None, None)
+        case List() => List()
+      }
+    }
 
+    groupByGuard(records, -1, None, None)
+  }
+
+  val recordList = inputList.map(getTimestamps(_)).sortBy{ case Timestamp(date, time, _) => (date, time) }
+  //println(recordList)
+
+  val shiftList = getShifts(recordList).groupBy(_.guardId)
+
+  val asleepGuard = shiftList
+    .map { case (key, shifts) => (key, shifts.foldLeft(0){ case (acc, Shift(_, s, w)) => acc + (w.get - s.get) }) }
+    .maxBy(_._2)._1
+
+  val shiftOfAsleepGuard = shiftList.find(_._1 == asleepGuard).map(_._2).get
+
+  val minuteTable = IndexedSeq.fill(59){0}
+
+  val asleepMinute = shiftOfAsleepGuard.foldLeft(minuteTable) {
+    case (acc, Shift(_, s, w)) =>
+      (s.get until w.get).map(col => acc.updated(col, acc(col)))
+  }
+
+  println(asleepGuard)
+  println(asleepMinute)
 }
 
 object FourA {
